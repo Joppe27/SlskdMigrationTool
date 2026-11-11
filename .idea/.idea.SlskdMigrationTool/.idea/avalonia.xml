@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="SlskdMigrationTool.App/App.axaml" value="SlskdMigrationTool.App/SlskdMigrationTool.App.csproj" />
+        <entry key="SlskdMigrationTool.App/HomePanel.axaml" value="SlskdMigrationTool.App/SlskdMigrationTool.App.csproj" />
+        <entry key="SlskdMigrationTool.App/MainWindow.axaml" value="SlskdMigrationTool.App/SlskdMigrationTool.App.csproj" />
+        <entry key="SlskdMigrationTool.App/SearchPanel.axaml" value="SlskdMigrationTool.App/SlskdMigrationTool.App.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

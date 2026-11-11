@@ -1,0 +1,160 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="650"
+             x:Class="SlskdMigrationTool.App.HomePanel">
+    <Grid RowDefinitions="Auto, *" Margin="16" VerticalAlignment="Stretch">
+        <StackPanel Grid.Row="0" Orientation="Vertical">
+            <TextBlock Text="This app is powered by:" />
+            <HyperlinkButton HorizontalAlignment="Center" NavigateUri="https://github.com/slskd/slskd" Margin="0, 8">
+                <StackPanel Orientation="Horizontal" MaxHeight="100" Margin="0, 0, 0, 18">
+                    <Svg Path="avares://SlskdMigrationTool.App/Icons/slskd.svg" Margin="0, 24 ,8 ,0" />
+                    <TextBlock xml:space="preserve" TextWrapping="NoWrap" FontFamily="{StaticResource Mono}"
+                               Foreground="Black">
+      ▄▄▄▄     ▄▄▄▄     ▄▄▄▄
+▄▄▄▄▄▄█  █▄▄▄▄▄█  █▄▄▄▄▄█  █
+█__ --█  █__ --█    ◄█  -  █
+█▄▄▄▄▄█▄▄█▄▄▄▄▄█▄▄█▄▄█▄▄▄▄▄█
+                        <TextBlock.TextDecorations>
+                            <TextDecorationCollection>
+                                <TextDecoration Stroke="Transparent" />
+                            </TextDecorationCollection>
+                        </TextBlock.TextDecorations>
+                    </TextBlock>
+                </StackPanel>
+            </HyperlinkButton>
+        </StackPanel>
+        <Grid Grid.Row="1" Name="HomeGrid" RowDefinitions="Auto, *, Auto"
+              RowSpacing="16" VerticalAlignment="Stretch">
+            <TabControl Grid.Row="0" Height="235" Padding="0">
+                <TabItem Header="Download" Margin="0,0,0,16" Padding="0,0,12,0" Classes="DarkPurple">
+                    <TextBlock>Coming soon, MAYBE.</TextBlock>
+                </TabItem>
+                <TabItem Header="Migrate" Margin="0,0,0,16" Classes="DarkPurple" IsSelected="True">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="9*, *, 4*" RowSpacing="16">
+                        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" BorderThickness="1"
+                                BorderBrush="MediumPurple" CornerRadius="4">
+                            <Grid ColumnDefinitions="10*, Auto, 4*">
+                                <SelectableTextBlock Name="AlbumFolderTextBlock" HorizontalAlignment="Stretch"
+                                                     VerticalAlignment="Center"
+                                                     Margin="10, 0" Text="Select an existing album folder..." />
+                                <Rectangle Grid.Column="1" Width="1" Fill="MediumPurple"></Rectangle>
+                                <Button Grid.Column="2" Name="BrowseAlbumFolderButton"
+                                        Click="BrowseAlbumFolderButton_OnClick" Classes="LightPurple" CornerRadius="4"
+                                        BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                                    Browse
+                                </Button>
+                            </Grid>
+                        </Border>
+                        <TextBlock Grid.Row="1" Grid.Column="0" TextWrapping="WrapWithOverflow"
+                                   VerticalAlignment="Center"
+                                   Text="Audio codec to migrate to" />
+                        <TextBox Grid.Row="1" Grid.Column="2" Name="CodecTextBox" HorizontalAlignment="Stretch"
+                                 MinHeight="0" BorderBrush="MediumPurple"
+                                 Classes="LightPurple" VerticalAlignment="Center" PlaceholderText="flac, mp3..." />
+                        <TextBlock Grid.Row="2" Grid.Column="0" TextWrapping="WrapWithOverflow"
+                                   VerticalAlignment="Center"
+                                   Text="Minimum bitrate to consider" />
+                        <TextBox Grid.Row="2" Grid.Column="2" Name="BitrateTextBox" HorizontalAlignment="Stretch"
+                                 MinHeight="0" BorderBrush="MediumPurple"
+                                 Classes="LightPurple" VerticalAlignment="Center" PlaceholderText="192, 320..." />
+                        <TextBlock Grid.Row="3" Grid.Column="0" TextWrapping="WrapWithOverflow"
+                                   VerticalAlignment="Center"
+                                   Text="Redownload completed downloads" />
+                        <CheckBox Grid.Row="3" Grid.Column="2" Name="ReplaceDownloadsCheckBox"
+                                              HorizontalAlignment="Right"
+                                              Classes="LightPurple" Padding="0" VerticalAlignment="Center"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Options" Margin="0,0,0,16" Classes="DarkPurple" IsSelected="False">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="9*, *, 4*" RowSpacing="16">
+                        <TextBlock Grid.Row="0" Grid.Column="0" TextWrapping="WrapWithOverflow"
+                                   VerticalAlignment="Center"
+                                   Text="Minimum number of files in response to consider it valid" />
+                        <NumericUpDown Grid.Row="0" Grid.Column="2" Name="SearchMinResponseBox"
+                                       HorizontalAlignment="Stretch" MinHeight="0" BorderBrush="MediumPurple"
+                                       Classes="LightPurple" VerticalAlignment="Center" Value="3" Increment="1"
+                                       Minimum="1" Maximum="99" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" TextWrapping="WrapWithOverflow"
+                                   VerticalAlignment="Center"
+                                   Text="Maximum number of respones before ending search" />
+                        <NumericUpDown Grid.Row="1" Grid.Column="2" Name="SearchMaxResponseBox"
+                                       HorizontalAlignment="Stretch" MinHeight="0" BorderBrush="MediumPurple"
+                                       Classes="LightPurple" VerticalAlignment="Center" Value="50" Increment="1"
+                                       Minimum="1" Maximum="99" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" TextWrapping="WrapWithOverflow"
+                                   VerticalAlignment="Center"
+                                   Text="Search timeout (seconds)" />
+                        <NumericUpDown Grid.Row="2" Grid.Column="2" Name="SearchTimeoutBox"
+                                       HorizontalAlignment="Stretch" MinHeight="0" BorderBrush="MediumPurple"
+                                       Classes="LightPurple" VerticalAlignment="Center" Value="10" Increment="1"
+                                       Minimum="5" Maximum="99" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" TextWrapping="WrapWithOverflow"
+                                   VerticalAlignment="Center"
+                                   Text="Prefer users with fast upload speed" />
+                        <CheckBox Grid.Row="3" Grid.Column="2" Name="PreferFastestUploadCheckBox"
+                                  HorizontalAlignment="Right"
+                                  Classes="LightPurple" IsChecked="True" Padding="0" MinHeight="0"
+                                  VerticalAlignment="Center" />
+                    </Grid>
+                </TabItem>
+            </TabControl>
+            <Rectangle Grid.Row="1" Fill="LightGray" Height="2" Margin="16,0" />
+            <Grid Grid.Row="2" ColumnDefinitions="9*, *, 4*" RowDefinitions="Auto, Auto" RowSpacing="16">
+                <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" BorderThickness="1" BorderBrush="MediumPurple"
+                        CornerRadius="4">
+                    <Grid ColumnDefinitions="10*, Auto, 4*" RowDefinitions="Auto, Auto">
+                        <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Vertical">
+                            <TextBox Name="SlskdPortTextBox" MinHeight="0" HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Stretch"
+                                     PlaceholderText="Enter slskd port here..." IsReadOnly="False"
+                                     BorderBrush="Transparent" />
+                            <Rectangle Height="1" Fill="MediumPurple" />
+                            <TextBox Name="SlskdKeyTextBox" MinHeight="0" HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Stretch"
+                                     PlaceholderText="Enter slskd api key here..." IsReadOnly="False"
+                                     BorderBrush="Transparent" />
+                        </StackPanel>
+                        <Rectangle Grid.Column="1" Grid.Row="0" Width="1" Fill="BlueViolet" />
+                        <Button Grid.Column="2" Grid.Row="0" Name="ConnectButton" Click="ConnectButton_OnClick"
+                                Classes="DarkPurple"
+                                CornerRadius="0" BorderThickness="0" HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center">
+                            Connect
+                        </Button>
+                        <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1">
+                            <Rectangle Height="1" Fill="BlueViolet" />
+                            <TextBlock Name="SlskdDownloadFolderTextBlock" TextWrapping="NoWrap" Padding="11, 0"
+                                       FontSize="11" FontStyle="Italic" Text="slskd downloads folder: n/a">
+                                <TextBlock.Background>
+                                    <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                                        <GradientStop Color="BlueViolet" Offset="0.0" />
+                                        <GradientStop Color="Transparent" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </TextBlock.Background>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <TextBlock Grid.Row="1" Grid.Column="0" TextWrapping="WrapWithOverflow"
+                           Text="Seach for all albums in the list and download files in accordance with the requirements specified above" />
+                <Border Grid.Row="1" Grid.Column="2" PointerEntered="SearchButton_OnPointerEntered"
+                        VerticalAlignment="Center">
+                    <Button Name="SearchButton" Click="SearchButton_OnClick"
+                            HorizontalAlignment="Stretch" Classes="DarkPurple" IsEnabled="False">
+                        Search
+                        <Button.Flyout>
+                            <Flyout ShowMode="TransientWithDismissOnPointerMoveAway" Placement="TopEdgeAlignedRight"
+                                    PlacementAnchor="TopRight" VerticalOffset="-2">
+                                <TextBlock>Connect to slskd first!</TextBlock>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

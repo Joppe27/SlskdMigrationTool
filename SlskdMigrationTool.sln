@@ -1,0 +1,22 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlskdMigrationTool.App", "SlskdMigrationTool.App\SlskdMigrationTool.App.csproj", "{4A6D2175-7A06-4657-B32F-8BCAAFBDDF62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlskdMigrationTool.slskd", "..\..\slskd\src\SlskdMigrationTool.slskd\SlskdMigrationTool.slskd.csproj", "{1EE882C9-2A4B-4473-A64E-87F8FF2CAAA9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4A6D2175-7A06-4657-B32F-8BCAAFBDDF62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A6D2175-7A06-4657-B32F-8BCAAFBDDF62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A6D2175-7A06-4657-B32F-8BCAAFBDDF62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A6D2175-7A06-4657-B32F-8BCAAFBDDF62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EE882C9-2A4B-4473-A64E-87F8FF2CAAA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EE882C9-2A4B-4473-A64E-87F8FF2CAAA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EE882C9-2A4B-4473-A64E-87F8FF2CAAA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EE882C9-2A4B-4473-A64E-87F8FF2CAAA9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="650"
+             x:Class="SlskdMigrationTool.App.SearchPanel">
+    <Grid ColumnDefinitions="4*, 2*" RowDefinitions="*, Auto, Auto, Auto, Auto"
+              Margin="16">
+        <Border Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" BorderBrush="MediumPurple" BorderThickness="1"
+                Margin="0, 0, 0, 8" CornerRadius="3">
+            <ScrollViewer x:Name="ConsoleScrollViewer" Margin="8" VerticalAlignment="Stretch">
+                <TextBlock x:Name="ConsoleText" TextWrapping="Wrap" FontFamily="{StaticResource Mono}">
+                    ***** CONSOLE *****
+                </TextBlock>
+            </ScrollViewer>
+        </Border>
+        <ComboBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Name="ProfileComboBox"
+                  HorizontalAlignment="Stretch"
+                  Margin="0, 0, 0, 8" PlaceholderText="Select analysis profile..." />
+        <Border Grid.Column="0" Grid.Row="2" MinHeight="30" BorderBrush="MediumPurple" BorderThickness="1"
+                CornerRadius="3" Margin="0,0,0,8">
+            <TextBlock x:Name="ParallelCorpusText" VerticalAlignment="Center" Margin="8, 0" TextWrapping="NoWrap">
+                Select file "parallel" structure...
+            </TextBlock>
+        </Border>
+        <Button Grid.Column="1" Grid.Row="2" x:Name="ParallelCorpusButton" Classes="LightPurple"
+                HorizontalAlignment="Stretch" Margin="8, 0, 0, 8">
+            Select corpus
+        </Button>
+        <Border Grid.Column="0" Grid.Row="3" BorderBrush="MediumPurple" MinHeight="30" BorderThickness="1"
+                CornerRadius="3" Margin="0, 0,0, 8">
+            <TextBlock x:Name="DifferentCorpusText" VerticalAlignment="Center" Margin="8, 0" TextWrapping="NoWrap">
+                Select file "different" structure...
+            </TextBlock>
+        </Border>
+        <Button Grid.Column="1" Grid.Row="3" Classes="LightPurple" HorizontalAlignment="Stretch"
+                Margin="8, 0, 0, 8">
+            Select corpus
+        </Button>
+        <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="4" x:Name="StartButton" Classes="DarkPurple"
+                HorizontalAlignment="Stretch">
+            Start analysis
+            <FlyoutBase.AttachedFlyout>
+                <Flyout Placement="Top" ShowMode="Transient" VerticalOffset="-150">
+                    <TextBlock Text="Analysis profile and/or corpora not selected!" />
+                </Flyout>
+            </FlyoutBase.AttachedFlyout>
+        </Button>
+    </Grid>
+</UserControl>
