@@ -4,6 +4,7 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -33,9 +34,13 @@ public partial class HomePanel : UserControl
     private readonly HttpClient _testClient = new();
     private bool _slskdConnected = false;
 
+    public List<string> AudioCodecs { get; } = Enum.GetNames(typeof(SearchPanel.AudioCodec)).ToList();
+
     public HomePanel()
     {
         InitializeComponent();
+        
+        DataContext = this;
     }
 
     private async void BrowseAlbumFolderButton_OnClick(object? sender, RoutedEventArgs e)
@@ -81,13 +86,19 @@ public partial class HomePanel : UserControl
             flexPanel.Children.Clear();
             flexPanel.Children.Add(searchPanel);
 
-            if (!Int32.TryParse(BitrateTextBox.Text, out int minBitrate))
-                throw new InvalidOperationException(); // TODO: proper input validation (for everything)
-
-            await TaskUtilities.AwaitNotify(this,
-                searchPanel.Search(_albumFolder,
-                    new SearchPanel.SearchOptions((int)SearchTimeoutBox.Value!, (int)SearchMinResponseBox.Value!, (int)SearchMaxResponseBox.Value!,
-                        ReplaceDownloadsCheckBox.IsChecked ?? false, PreferFastestUploadCheckBox.IsChecked ?? false, SearchPanel.AudioCodec.Flac, minBitrate))); // TODO: nuke codec text box  
+            if (CodecComboBox.SelectedValue is string codecName && Enum.TryParse(codecName, false, out SearchPanel.AudioCodec audioCodec) &&
+                Int32.TryParse(BitrateTextBox.Text, out int minBitrate))
+            {
+                await TaskUtilities.AwaitNotify(this,
+                    searchPanel.Search(_albumFolder,
+                        new SearchPanel.SearchOptions((int)SearchTimeoutBox.Value!, (int)SearchMinResponseBox.Value!, (int)SearchMaxResponseBox.Value!,
+                            ReplaceDownloadsCheckBox.IsChecked ?? false, PreferFastestUploadCheckBox.IsChecked ?? false, audioCodec, minBitrate)));
+            }
+            else
+            {
+                SearchButtonFlyoutText.Text = "Invalid input!";
+                FlyoutBase.ShowAttachedFlyout(SearchButton);
+            }
         }
         else
         {
@@ -153,6 +164,7 @@ public partial class HomePanel : UserControl
         if (buttonBorder is null)
             return;
 
-        SearchButton.Flyout!.ShowAt(buttonBorder);
+        SearchButtonFlyoutText.Text = "Connect to slskd first!";
+        FlyoutBase.ShowAttachedFlyout(SearchButton);
     }
 }

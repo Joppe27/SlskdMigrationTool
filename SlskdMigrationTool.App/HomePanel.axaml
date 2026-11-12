@@ -2,8 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:app="clr-namespace:SlskdMigrationTool.App"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="650"
-             x:Class="SlskdMigrationTool.App.HomePanel">
+             x:Class="SlskdMigrationTool.App.HomePanel"
+             x:DataType="app:HomePanel">
     <Grid RowDefinitions="Auto, *" Margin="16" VerticalAlignment="Stretch">
         <StackPanel Grid.Row="0" Orientation="Vertical">
             <TextBlock Text="This app is powered by:" />
@@ -51,9 +53,10 @@
                         <TextBlock Grid.Row="1" Grid.Column="0" TextWrapping="WrapWithOverflow"
                                    VerticalAlignment="Center"
                                    Text="Audio codec to migrate to" />
-                        <TextBox Grid.Row="1" Grid.Column="2" Name="CodecTextBox" HorizontalAlignment="Stretch"
-                                 MinHeight="0" BorderBrush="MediumPurple"
-                                 Classes="LightPurple" VerticalAlignment="Center" PlaceholderText="flac, mp3..." />
+                        <ComboBox Grid.Row="1" Grid.Column="2" Name="CodecComboBox" HorizontalAlignment="Stretch"
+                                  MinHeight="0" BorderBrush="MediumPurple" ItemsSource="{Binding AudioCodecs}"
+                                  Classes="LightPurple" VerticalAlignment="Center" PlaceholderText="select...">
+                        </ComboBox>
                         <TextBlock Grid.Row="2" Grid.Column="0" TextWrapping="WrapWithOverflow"
                                    VerticalAlignment="Center"
                                    Text="Minimum bitrate to consider" />
@@ -64,8 +67,8 @@
                                    VerticalAlignment="Center"
                                    Text="Redownload completed downloads" />
                         <CheckBox Grid.Row="3" Grid.Column="2" Name="ReplaceDownloadsCheckBox"
-                                              HorizontalAlignment="Right"
-                                              Classes="LightPurple" Padding="0" VerticalAlignment="Center"/>
+                                  HorizontalAlignment="Right"
+                                  Classes="LightPurple" Padding="0" VerticalAlignment="Center" />
                     </Grid>
                 </TabItem>
                 <TabItem Header="Options" Margin="0,0,0,16" Classes="DarkPurple" IsSelected="False">
@@ -149,7 +152,7 @@
                         <Button.Flyout>
                             <Flyout ShowMode="TransientWithDismissOnPointerMoveAway" Placement="TopEdgeAlignedRight"
                                     PlacementAnchor="TopRight" VerticalOffset="-2">
-                                <TextBlock>Connect to slskd first!</TextBlock>
+                                <TextBlock Name="SearchButtonFlyoutText" />
                             </Flyout>
                         </Button.Flyout>
                     </Button>

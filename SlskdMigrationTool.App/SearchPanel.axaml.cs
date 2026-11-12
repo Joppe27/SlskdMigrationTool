@@ -214,10 +214,10 @@ public partial class SearchPanel : UserControl
 
     public enum AudioCodec
     {
-        Mp3,
-        Aac,
+        MP3,
+        AAC,
         Opus,
-        Flac,
-        Alac,
+        FLAC,
+        ALAC,
     }
 }
