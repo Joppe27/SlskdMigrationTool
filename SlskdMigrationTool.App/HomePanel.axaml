@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:app="clr-namespace:SlskdMigrationTool.App"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="650"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
              x:Class="SlskdMigrationTool.App.HomePanel"
              x:DataType="app:HomePanel">
     <Grid RowDefinitions="Auto, *" Margin="16" VerticalAlignment="Stretch">
@@ -29,18 +29,20 @@
         </StackPanel>
         <Grid Grid.Row="1" Name="HomeGrid" RowDefinitions="Auto, *, Auto"
               RowSpacing="16" VerticalAlignment="Stretch">
-            <TabControl Grid.Row="0" Height="235" Padding="0">
+            <TabControl Grid.Row="0" Height="280" Padding="0">
                 <TabItem Header="Download" Margin="0,0,0,16" Padding="0,0,12,0" Classes="DarkPurple">
                     <TextBlock>Coming soon, MAYBE.</TextBlock>
                 </TabItem>
                 <TabItem Header="Migrate" Margin="0,0,0,16" Classes="DarkPurple" IsSelected="True">
-                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="9*, *, 4*" RowSpacing="16">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="9*, *, 4*" RowSpacing="16">
                         <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" BorderThickness="1"
                                 BorderBrush="MediumPurple" CornerRadius="4">
                             <Grid ColumnDefinitions="10*, Auto, 4*">
-                                <SelectableTextBlock Name="AlbumFolderTextBlock" HorizontalAlignment="Stretch"
-                                                     VerticalAlignment="Center"
-                                                     Margin="10, 0" Text="Select an existing album folder..." />
+                                <ScrollViewer HorizontalScrollBarVisibility="Hidden">
+                                    <SelectableTextBlock Name="AlbumFolderTextBlock" HorizontalAlignment="Stretch"
+                                                         VerticalAlignment="Center"
+                                                         Margin="10, 0" Text="Select an existing album folder..." />
+                                </ScrollViewer>
                                 <Rectangle Grid.Column="1" Width="1" Fill="MediumPurple"></Rectangle>
                                 <Button Grid.Column="2" Name="BrowseAlbumFolderButton"
                                         Click="BrowseAlbumFolderButton_OnClick" Classes="LightPurple" CornerRadius="4"
@@ -65,8 +67,14 @@
                                  Classes="LightPurple" VerticalAlignment="Center" PlaceholderText="192, 320..." />
                         <TextBlock Grid.Row="3" Grid.Column="0" TextWrapping="WrapWithOverflow"
                                    VerticalAlignment="Center"
+                                   Text="Only consider albums with same or higher number of audio files" />
+                        <CheckBox Grid.Row="3" Grid.Column="2" Name="MatchFileCountCheckBox"
+                                  HorizontalAlignment="Right" IsChecked="True"
+                                  Classes="LightPurple" Padding="0" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="4" Grid.Column="0" TextWrapping="WrapWithOverflow"
+                                   VerticalAlignment="Center"
                                    Text="Redownload completed downloads" />
-                        <CheckBox Grid.Row="3" Grid.Column="2" Name="ReplaceDownloadsCheckBox"
+                        <CheckBox Grid.Row="4" Grid.Column="2" Name="ReplaceDownloadsCheckBox"
                                   HorizontalAlignment="Right"
                                   Classes="LightPurple" Padding="0" VerticalAlignment="Center" />
                     </Grid>
@@ -92,8 +100,8 @@
                                    Text="Search timeout (seconds)" />
                         <NumericUpDown Grid.Row="2" Grid.Column="2" Name="SearchTimeoutBox"
                                        HorizontalAlignment="Stretch" MinHeight="0" BorderBrush="MediumPurple"
-                                       Classes="LightPurple" VerticalAlignment="Center" Value="10" Increment="1"
-                                       Minimum="5" Maximum="99" />
+                                       Classes="LightPurple" VerticalAlignment="Center" Value="20" Increment="1"
+                                       Minimum="10" Maximum="99" />
                         <TextBlock Grid.Row="3" Grid.Column="0" TextWrapping="WrapWithOverflow"
                                    VerticalAlignment="Center"
                                    Text="Prefer users with fast upload speed" />

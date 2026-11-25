@@ -14,6 +14,8 @@ public partial class MainWindow : Window
     public readonly Action LoadingFinished;
     public readonly Action LoadingStarted;
     
+    public HomePanel? HomePanelSavedState { private get; set; }
+    
     public MainWindow()
     {
         InitializeComponent();
@@ -61,7 +63,7 @@ public partial class MainWindow : Window
     
     private void MainMenuButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        var homePanel = new HomePanel();
+        var homePanel = HomePanelSavedState ?? new HomePanel();
 
         FlexiblePanel.Children.Clear();
         FlexiblePanel.Children.Add(homePanel);

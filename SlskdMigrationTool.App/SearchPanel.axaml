@@ -11,6 +11,7 @@
             <ScrollViewer x:Name="ConsoleScrollViewer" Margin="8" VerticalAlignment="Stretch">
                 <TextBlock x:Name="ConsoleText" TextWrapping="Wrap" FontFamily="{StaticResource Mono}">
                     ***** CONSOLE *****
+                    
                 </TextBlock>
             </ScrollViewer>
         </Border>

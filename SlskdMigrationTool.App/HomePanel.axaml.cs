@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -57,7 +58,7 @@ public partial class HomePanel : UserControl
                 return;
 
             _albumFolder = pickerFolder.First();
-            AlbumFolderTextBlock.Text = _albumFolder.Name;
+            AlbumFolderTextBlock.Text = _albumFolder.Path.ToString();
         }
 
         if (this.Parent is Panel flexPanel)
@@ -77,32 +78,37 @@ public partial class HomePanel : UserControl
         }
     }
 
-    private async void SearchButton_OnClick(object? sender, RoutedEventArgs e)
+    private void SearchButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (this.Parent is Panel flexPanel)
+        if (CodecComboBox.SelectedValue is string codecName && Enum.TryParse(codecName, false, out SearchPanel.AudioCodec audioCodec) &&
+            Int32.TryParse(BitrateTextBox.Text, out int minBitrate))
         {
             var searchPanel = new SearchPanel();
-
-            flexPanel.Children.Clear();
-            flexPanel.Children.Add(searchPanel);
-
-            if (CodecComboBox.SelectedValue is string codecName && Enum.TryParse(codecName, false, out SearchPanel.AudioCodec audioCodec) &&
-                Int32.TryParse(BitrateTextBox.Text, out int minBitrate))
+            
+            _ = TaskUtilities.AwaitNotify(this,
+                searchPanel.Search(_albumFolder,
+                    new SearchPanel.SearchOptions((int)SearchTimeoutBox.Value!, (int)SearchMinResponseBox.Value!, (int)SearchMaxResponseBox.Value!, MatchFileCountCheckBox.IsChecked ?? false,
+                        ReplaceDownloadsCheckBox.IsChecked ?? false, PreferFastestUploadCheckBox.IsChecked ?? false, audioCodec, minBitrate)));
+            
+            if (this.Parent is Panel flexPanel)
             {
-                await TaskUtilities.AwaitNotify(this,
-                    searchPanel.Search(_albumFolder,
-                        new SearchPanel.SearchOptions((int)SearchTimeoutBox.Value!, (int)SearchMinResponseBox.Value!, (int)SearchMaxResponseBox.Value!,
-                            ReplaceDownloadsCheckBox.IsChecked ?? false, PreferFastestUploadCheckBox.IsChecked ?? false, audioCodec, minBitrate)));
+                if (TopLevel.GetTopLevel(this) is MainWindow mainWindow)
+                    mainWindow.HomePanelSavedState = this;
+                else
+                    throw new InvalidOperationException();
+                
+                flexPanel.Children.Clear();
+                flexPanel.Children.Add(searchPanel);
             }
             else
             {
-                SearchButtonFlyoutText.Text = "Invalid input!";
-                FlyoutBase.ShowAttachedFlyout(SearchButton);
+                throw new InvalidOperationException();
             }
         }
         else
         {
-            throw new InvalidOperationException();
+            SearchButtonFlyoutText.Text = "Invalid input!";
+            FlyoutBase.ShowAttachedFlyout(SearchButton);
         }
     }
 
@@ -145,7 +151,7 @@ public partial class HomePanel : UserControl
         var options = await TaskUtilities.AwaitNotify(this,
             optionsRequest.Content.ReadFromJsonAsync<Options>(new JsonSerializerOptions()
                 { Converters = { new JsonStringEnumConverter() }, PropertyNameCaseInsensitive = true }));
-        if (options is OptionsAtStartup startupOptions)
+        if (options is { } startupOptions)
             slskdDownloadFolder = startupOptions.Directories.Downloads;
         else
             throw new InvalidOperationException();

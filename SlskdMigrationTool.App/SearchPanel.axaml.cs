@@ -26,6 +26,8 @@ public partial class SearchPanel : UserControl
 {
     private readonly HttpClient _slskdClient = App.ServiceProvider.GetRequiredService<HttpClient>();
 
+    private readonly List<Album> _skippedAlbums = new(); // TODO
+
     public SearchPanel()
     {
         InitializeComponent();
@@ -44,15 +46,29 @@ public partial class SearchPanel : UserControl
             var searchId = await StartSearch(album.FolderNameClean, searchOptions);
 
             var responses = await AwaitSearchResponses(searchId, searchOptions);
+
+            if (responses.Count == 0)
+            {
+                ConsoleText.Text += $"No responses received, skipping album: {album.FolderNameClean}\n";
+                _skippedAlbums.Add(album);
+                return;
+            }
+
             if (searchOptions.PreferFastestUser)
                 responses = responses.OrderBy(r => r.UploadSpeed).ToList();
-            var fastestFlacResponse = responses.First(r =>
-                r.Files.All(f =>
-                    f.Filename.EndsWith(searchOptions.Codec.ToString(), StringComparison.CurrentCultureIgnoreCase) && f.BitRate > searchOptions.MinBitrate &&
-                    !f.IsLocked) &&
-                r.HasFreeUploadSlot);
+            var validatedReponse = responses.FirstOrDefault(r =>
+                r.QueueLength < 20 && // TODO: configurable?
+                r.Files.All(f => !f.IsLocked) &&
+                r.Files.Count(f => f.Filename.EndsWith(searchOptions.Codec.ToString(), StringComparison.InvariantCultureIgnoreCase)) >= (searchOptions.MatchFileCount ? album.Tracks.Count : 0) &&
+                r.Files.Where(f => f.Filename.EndsWith(searchOptions.Codec.ToString(), StringComparison.InvariantCultureIgnoreCase)).All(f => f.BitRate >= searchOptions.MinBitrate));
 
-            await DownloadAlbum(fastestFlacResponse, searchId, album, searchOptions);
+            if (validatedReponse is null)
+            {
+                ConsoleText.Text += $"None of {responses.Count} responses match migration settings, skipping album: {album.FolderNameClean}\n";
+                return;
+            }
+
+            await DownloadAlbum(validatedReponse, searchId, album, searchOptions);
         }
     }
 
@@ -97,10 +113,12 @@ public partial class SearchPanel : UserControl
 
             if (sw.ElapsedMilliseconds > searchOptions.SearchTimeout * 1000)
             {
-                sw.Stop();
-                ConsoleText.Text += "Search took too long, continuing without any responses\n";
+                ConsoleText.Text += "Search timeout reached, using only responses received thus far\n";
 
-                return new List<Response>();
+                var searchStopRequest = await _slskdClient.PutAsync($"/api/v0/Searches/{searchId.ToString()}", null);
+                searchStopRequest.EnsureSuccessStatusCode();
+
+                break;
             }
 
             await Task.Delay(1000);
@@ -119,20 +137,29 @@ public partial class SearchPanel : UserControl
 
     private async Task DownloadAlbum(Response userResponse, Guid associatedSearch, Album album, SearchOptions searchOptions)
     {
-        List<EnqueueDownloadBatchItem> albumFiles = new();
+        List<EnqueueDownloadBatchItem> albumFilesToDownload = new();
 
         foreach (var file in userResponse.Files)
         {
-            if (!searchOptions.ReplaceExisting && album.TracksOnDisk.Contains(file, EqualityComparer<slskd.Search.File>.Create((a, b) =>
+            if (!searchOptions.ReplaceExisting && album.TracksInSlskdDownloads.Contains(file, EqualityComparer<slskd.Search.File>.Create((a, b) =>
                 {
                     if (a is null || b is null)
                         return false;
 
                     return Math.Abs(a.Size - b.Size) < 100 * 1024;
                 })))
+            {
+                ConsoleText.Text += $"File already present in slskd downloads folder, skipping track: {file.Filename}\n";
                 continue;
+            }
 
-            albumFiles.Add(new EnqueueDownloadBatchItem()
+            if (!file.Filename.EndsWith(searchOptions.Codec.ToString(), StringComparison.InvariantCultureIgnoreCase))
+            {
+                ConsoleText.Text += $"File not audio or wrong codec, skipping: {file.Filename}"; // TODO: configurable
+                continue;
+            }
+
+            albumFilesToDownload.Add(new EnqueueDownloadBatchItem()
             {
                 Filename = file.Filename,
                 Size = file.Size,
@@ -143,11 +170,11 @@ public partial class SearchPanel : UserControl
         {
             SearchId = associatedSearch.ToString(),
             Username = userResponse.Username,
-            Files = albumFiles,
+            Files = albumFilesToDownload,
             Options = new EnqueueDownloadBatchOptions() { Destination = album.FolderName }
         };
 
-        await _slskdClient.PostAsync("api/v0/Transfers/downloads/batches", JsonContent.Create(downloadRequest));
+        await _slskdClient.PostAsync("api/v0/Transfers/downloads/batches", JsonContent.Create(downloadRequest)); // TODO: check request
         ConsoleText.Text += $"Downloads enqueued: {downloadRequest.Files.Count} files will be downloaded to the {album.FolderName} folder\n";
     }
 
@@ -155,7 +182,9 @@ public partial class SearchPanel : UserControl
     {
         public string FolderName { get; }
         public string FolderNameClean { get; }
-        public List<slskd.Search.File> TracksOnDisk { get; } = new();
+        public List<slskd.Search.File> Tracks { get; } = new();
+
+        public List<slskd.Search.File> TracksInSlskdDownloads = new(); // TODO 
 
         readonly string[] _countryCodes =
         [
@@ -176,10 +205,10 @@ public partial class SearchPanel : UserControl
             FolderName = albumFolder.Name;
             FolderNameClean = CleanFolderName(albumFolder.Name);
 
-            var albumFiles = albumFolder.EnumerateFiles();
+            var albumFiles = albumFolder.EnumerateFiles("*", new EnumerationOptions() { AttributesToSkip = FileAttributes.Hidden });
             foreach (var file in albumFiles)
             {
-                TracksOnDisk.Add(new slskd.Search.File()
+                Tracks.Add(new slskd.Search.File()
                 {
                     Filename = file.Name,
                     Size = file.Length,
@@ -187,19 +216,19 @@ public partial class SearchPanel : UserControl
             }
         }
 
-        private string CleanFolderName(string album)
+        private string CleanFolderName(string folderName)
         {
-            album = Regex.Replace(album, "\\([^)]*\\)", "");
-            album = Regex.Replace(album, "\\[[^\\]]*\\]", "");
-            album = album.Replace('-', ' ');
+            folderName = Regex.Replace(folderName, "\\([^)]*\\)", "");
+            folderName = Regex.Replace(folderName, "\\[[^\\]]*\\]", "");
+            folderName = folderName.Replace('-', ' ');
 
             foreach (string country in _countryCodes)
-                album = album.Replace(country, "");
+                folderName = folderName.Replace($" {country} ", "");
 
             foreach (string word in _noiseWords)
-                album = album.Replace(word, "");
+                folderName = folderName.Replace($" {word} ", "");
 
-            return album;
+            return folderName;
         }
     }
 
@@ -207,6 +236,7 @@ public partial class SearchPanel : UserControl
         int SearchTimeout,
         int SearchMinResponses,
         int SearchMaxResponses,
+        bool MatchFileCount,
         bool ReplaceExisting,
         bool PreferFastestUser,
         AudioCodec Codec,
