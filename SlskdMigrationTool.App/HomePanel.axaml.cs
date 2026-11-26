@@ -31,51 +31,48 @@ namespace SlskdMigrationTool.App;
 public partial class HomePanel : UserControl
 {
     private IStorageFolder _albumFolder = null!;
+    private IStorageFolder _slskdDownloadsFolder = null!;
 
     private readonly HttpClient _testClient = new();
     private bool _slskdConnected = false;
+
+    private MainWindow _mainWindow = null!;
 
     public List<string> AudioCodecs { get; } = Enum.GetNames(typeof(SearchPanel.AudioCodec)).ToList();
 
     public HomePanel()
     {
         InitializeComponent();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        if (TopLevel.GetTopLevel(this) is MainWindow mainWindow)
+            _mainWindow = mainWindow;
+        else
+            throw new InvalidOperationException();
         
         DataContext = this;
     }
 
-    private async void BrowseAlbumFolderButton_OnClick(object? sender, RoutedEventArgs e)
+    private void BrowseAlbumFolderButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (TopLevel.GetTopLevel(this) is { } window)
+        _ = TaskUtilities.AwaitNotify(this, async () =>
         {
-            var pickerFolder = await TaskUtilities.AwaitNotify(this, window.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions()
+            var pickerFolder = await _mainWindow.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions()
             {
                 AllowMultiple = false,
                 Title = "Select existing album folder..."
-            }));
+            });
 
             if (pickerFolder.Count == 0)
                 return;
 
             _albumFolder = pickerFolder.First();
-            AlbumFolderTextBlock.Text = _albumFolder.Path.ToString();
-        }
-
-        if (this.Parent is Panel flexPanel)
-        {
-            // try
-            // {
-            //     = await TaskUtilities.AwaitNotify(this, AnalyzePanel.CreateAsync());
-            // }
-            // catch (Exception ex)
-            // {
-            //     ExceptionUtilities.LogNotify(this, ex);
-            //     return;
-            // }
-            //
-            // flexPanel.Children.Clear();
-            // flexPanel.Children.Add();
-        }
+            AlbumFolderTextBlock.Text = _albumFolder.Path.LocalPath;
+        });
     }
 
     private void SearchButton_OnClick(object? sender, RoutedEventArgs e)
@@ -84,19 +81,15 @@ public partial class HomePanel : UserControl
             Int32.TryParse(BitrateTextBox.Text, out int minBitrate))
         {
             var searchPanel = new SearchPanel();
-            
-            _ = TaskUtilities.AwaitNotify(this,
-                searchPanel.Search(_albumFolder,
+        
+            _ = searchPanel.Search(_albumFolder, _slskdDownloadsFolder,
                     new SearchPanel.SearchOptions((int)SearchTimeoutBox.Value!, (int)SearchMinResponseBox.Value!, (int)SearchMaxResponseBox.Value!, MatchFileCountCheckBox.IsChecked ?? false,
-                        ReplaceDownloadsCheckBox.IsChecked ?? false, PreferFastestUploadCheckBox.IsChecked ?? false, audioCodec, minBitrate)));
-            
+                        ReplaceDownloadsCheckBox.IsChecked ?? false, PreferFastestUploadCheckBox.IsChecked ?? false, audioCodec, minBitrate));
+        
             if (this.Parent is Panel flexPanel)
             {
-                if (TopLevel.GetTopLevel(this) is MainWindow mainWindow)
-                    mainWindow.HomePanelSavedState = this;
-                else
-                    throw new InvalidOperationException();
-                
+                _mainWindow.HomePanelSavedState = this;
+            
                 flexPanel.Children.Clear();
                 flexPanel.Children.Add(searchPanel);
             }
@@ -112,53 +105,54 @@ public partial class HomePanel : UserControl
         }
     }
 
-    private async void ConnectButton_OnClick(object? sender, RoutedEventArgs e)
+    private void ConnectButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (SlskdPortTextBox.Text is null || SlskdKeyTextBox.Text is null || _slskdConnected)
-            return;
+        _ = TaskUtilities.AwaitNotify(this, async () =>
+        {
+            if (SlskdPortTextBox.Text is null || SlskdKeyTextBox.Text is null || _slskdConnected)
+                return;
 
-        var req = new HttpRequestMessage(HttpMethod.Get, SlskdPortTextBox.Text + "api/v0/Application");
-        req.Headers.Add("X-API-Key", SlskdKeyTextBox.Text);
+            var req = new HttpRequestMessage(HttpMethod.Get, SlskdPortTextBox.Text + "api/v0/Application");
+            req.Headers.Add("X-API-Key", SlskdKeyTextBox.Text);
 
-        var applicationRequest = await TaskUtilities.AwaitNotify(this, _testClient.SendAsync(req));
-        if (!applicationRequest.IsSuccessStatusCode)
-            return;
+            var applicationRequest = await _testClient.SendAsync(req);
+            if (!applicationRequest.IsSuccessStatusCode)
+                return;
 
-        var applicationState = await TaskUtilities.AwaitNotify(this, applicationRequest.Content.ReadFromJsonAsync<State>(new JsonSerializerOptions()
-            { Converters = { new JsonStringEnumConverter() }, PropertyNameCaseInsensitive = true })); // TODO
-        if (applicationState is null || !applicationState.Server.IsConnected)
-            return;
+            var applicationState = await applicationRequest.Content.ReadFromJsonAsync<State>(new JsonSerializerOptions()
+                { Converters = { new JsonStringEnumConverter() }, PropertyNameCaseInsensitive = true }); // TODO
+            if (applicationState is null || !applicationState.Server.IsConnected)
+                return;
 
-        _slskdConnected = true;
-        Console.WriteLine("Connection verified!");
+            _slskdConnected = true;
+            Console.WriteLine("Connection verified!");
 
-        HttpClient slskdClient = App.ServiceProvider.GetRequiredService<HttpClient>();
-        slskdClient.BaseAddress = new Uri(SlskdPortTextBox.Text);
-        slskdClient.DefaultRequestHeaders.Add("X-API-Key", SlskdKeyTextBox.Text);
+            HttpClient slskdClient = App.ServiceProvider.GetRequiredService<HttpClient>();
+            slskdClient.BaseAddress = new Uri(SlskdPortTextBox.Text);
+            slskdClient.DefaultRequestHeaders.Add("X-API-Key", SlskdKeyTextBox.Text);
 
-        var checkSvg = Avalonia.Svg.SvgSource.Load("avares://SlskdMigrationTool.App/Icons/circle-check-regular-purple.svg", null);
-        ConnectButton.Content = new Image() { Source = new Avalonia.Svg.SvgImage() { Source = checkSvg }, MaxHeight = 36 };
-        ConnectButton.IsEnabled = false;
+            var checkSvg = Avalonia.Svg.SvgSource.Load("avares://SlskdMigrationTool.App/Icons/circle-check-regular-purple.svg", null);
+            ConnectButton.Content = new Image() { Source = new Avalonia.Svg.SvgImage() { Source = checkSvg }, MaxHeight = 36 };
+            ConnectButton.IsEnabled = false;
 
-        SlskdPortTextBox.IsReadOnly = true;
-        SlskdKeyTextBox.IsReadOnly = true;
+            SlskdPortTextBox.IsReadOnly = true;
+            SlskdKeyTextBox.IsReadOnly = true;
 
-        var optionsRequest = await TaskUtilities.AwaitNotify(this, slskdClient.GetAsync("api/v0/Options/startup"));
-        optionsRequest.EnsureSuccessStatusCode();
+            var optionsRequest = await slskdClient.GetAsync("api/v0/Options/startup");
+            optionsRequest.EnsureSuccessStatusCode();
 
-        string slskdDownloadFolder;
+            var options = await optionsRequest.Content.ReadFromJsonAsync<Options>(new JsonSerializerOptions()
+                    { Converters = { new JsonStringEnumConverter() }, PropertyNameCaseInsensitive = true });
+            if (options is { } startupOptions && await _mainWindow.StorageProvider.TryGetFolderFromPathAsync(startupOptions.Directories.Downloads) is
+                    { } downloadsFolder)
+                _slskdDownloadsFolder = downloadsFolder;
+            else
+                throw new InvalidOperationException();
 
-        var options = await TaskUtilities.AwaitNotify(this,
-            optionsRequest.Content.ReadFromJsonAsync<Options>(new JsonSerializerOptions()
-                { Converters = { new JsonStringEnumConverter() }, PropertyNameCaseInsensitive = true }));
-        if (options is { } startupOptions)
-            slskdDownloadFolder = startupOptions.Directories.Downloads;
-        else
-            throw new InvalidOperationException();
+            SlskdDownloadFolderTextBlock.Text = SlskdDownloadFolderTextBlock.Text!.Replace("n/a", _slskdDownloadsFolder.Path.LocalPath);
 
-        SlskdDownloadFolderTextBlock.Text = SlskdDownloadFolderTextBlock.Text!.Replace("n/a", slskdDownloadFolder);
-
-        SearchButton.IsEnabled = true;
+            SearchButton.IsEnabled = true;
+        });
     }
 
     private void SearchButton_OnPointerEntered(object? sender, PointerEventArgs e)
@@ -166,11 +160,7 @@ public partial class HomePanel : UserControl
         if (SearchButton.IsEnabled)
             return;
 
-        var buttonBorder = sender as Control;
-        if (buttonBorder is null)
-            return;
-
         SearchButtonFlyoutText.Text = "Connect to slskd first!";
-        FlyoutBase.ShowAttachedFlyout(SearchButton);
+        FlyoutBase.ShowAttachedFlyout(SearchButton); // TODO: broken?
     }
 }

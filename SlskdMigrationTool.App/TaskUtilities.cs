@@ -18,7 +18,7 @@ public static class TaskUtilities
     /// <summary>
     /// Performs an asynchronous task while notifying the UI (to show loading indicator)
     /// </summary>
-    public static async Task<TResult> AwaitNotify<TResult>(Visual sender, Task<TResult> awaitableTask)
+    public static async Task<TResult> AwaitNotify<TResult>(Visual sender, Func<Task<TResult>> asyncDelegate)
     {
         MainWindow mainView = sender.GetVisualAncestors().SingleOrDefault(v => v is MainWindow) as MainWindow ??
                             throw new InvalidOperationException("Sender is not a child of a MainWindow");
@@ -28,7 +28,7 @@ public static class TaskUtilities
         TResult result;
         try
         {
-            result = await awaitableTask;
+            result = await asyncDelegate.Invoke();
         }
         finally
         {
@@ -41,7 +41,7 @@ public static class TaskUtilities
     /// <summary>
     /// Performs an asynchronous task while notifying the UI (to show loading indicator)
     /// </summary>
-    public static async Task AwaitNotify(Visual sender, Task awaitableTask)
+    public static async Task AwaitNotify(Visual sender, Func<Task> asyncDelegate)
     {
         MainWindow mainView = sender.GetVisualAncestors().SingleOrDefault(v => v is MainWindow) as MainWindow ??
                               throw new InvalidOperationException("Sender is not a child of a MainWindow");
@@ -50,7 +50,7 @@ public static class TaskUtilities
 
         try
         {
-            await awaitableTask;
+            await asyncDelegate.Invoke();
         }
         finally
         {

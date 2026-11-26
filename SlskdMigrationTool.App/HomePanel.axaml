@@ -73,7 +73,7 @@
                                   Classes="LightPurple" Padding="0" VerticalAlignment="Center" />
                         <TextBlock Grid.Row="4" Grid.Column="0" TextWrapping="WrapWithOverflow"
                                    VerticalAlignment="Center"
-                                   Text="Redownload completed downloads" />
+                                   Text="Redownload completed albums" />
                         <CheckBox Grid.Row="4" Grid.Column="2" Name="ReplaceDownloadsCheckBox"
                                   HorizontalAlignment="Right"
                                   Classes="LightPurple" Padding="0" VerticalAlignment="Center" />
